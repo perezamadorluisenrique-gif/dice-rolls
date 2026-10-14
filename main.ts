@@ -13,6 +13,8 @@ import {
   editorInfoField,
   debounce,
   editorLivePreviewField,
+  getIcon,
+  requireApiVersion,
   setIcon,
   setTooltip,
 } from 'obsidian';
@@ -139,7 +141,7 @@ export default class DiceRollsPlugin extends Plugin {
     this.addCommand({
       id: 'write-dice-mod',
       name: 'Write the results of dice-mod rolls in this note',
-      icon: 'pen-line',
+      icon: penIcon(),
       editorCallback: (editor, ctx) => this.writeAllMods(editor, ctx.file?.path ?? ''),
     });
     this.addCommand({
@@ -248,7 +250,10 @@ export default class DiceRollsPlugin extends Plugin {
       if (!leaf) return;
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
     }
-    workspace.rightSplit.expand();
+    // revealLeaf picks the history's tab: on a phone the sidebar is a drawer
+    // that otherwise opens on whatever tab it showed last.
+    if (requireApiVersion('1.7.2')) await workspace.revealLeaf(leaf);
+    else workspace.rightSplit.expand();
     workspace.setActiveLeaf(leaf, { focus: true });
   }
 
@@ -333,7 +338,7 @@ export default class DiceRollsPlugin extends Plugin {
     el.addClass('dice-rolls-roll');
     const result = el.createSpan({ cls: 'dice-rolls-result' });
     const showButton = roll.showButton ?? this.settings.showButton;
-    if (showButton) setIcon(el.createSpan({ cls: 'dice-rolls-button' }), roll.mod ? 'pen-line' : 'dices');
+    if (showButton) setIcon(el.createSpan({ cls: 'dice-rolls-button' }), roll.mod ? penIcon() : 'dices');
     if (roll.paren) el.createSpan({ cls: 'dice-rolls-formula', text: ` (${roll.formula})` });
     el.setAttr('role', 'button');
     el.setAttr('tabindex', '0');
@@ -1158,4 +1163,9 @@ class FormulaModal extends Modal {
   onClose() {
     this.contentEl.empty();
   }
+}
+
+/** `pen-line`, or `edit-3`, its name in the icon set of Obsidian before 1.7. */
+function penIcon(): string {
+  return getIcon('pen-line') ? 'pen-line' : 'edit-3';
 }
