@@ -1,0 +1,10 @@
+{
+  "id": "dice-rolls",
+  "name": "Dice Rolls",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.4",
+  "description": "Inline dice rolls you click to reroll, in Live Preview and Reading view, with full dice notation, a roll dialog and a roll history. Reads Dice Roller notes.",
+  "author": "Siulved54",
+  "authorUrl": "https://github.com/perezamadorluisenrique-gif",
+  "isDesktopOnly": false
+}

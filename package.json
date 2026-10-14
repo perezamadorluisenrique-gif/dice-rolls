@@ -1,0 +1,29 @@
+{
+  "name": "dice-rolls",
+  "version": "0.1.0",
+  "description": "Dice Rolls for Obsidian - Inline dice rolls you click to reroll, in Live Preview and Reading view, with full dice notation, a roll dialog and a roll history. Reads Dice Roller notes.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "lint": "eslint .",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "test": "node --test 'tests/*.test.ts'",
+    "version": "node version-bump.mjs && git add manifest.json versions.json CHANGELOG.md"
+  },
+  "devDependencies": {
+    "@codemirror/language": "6.11.3",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^16.11.6",
+    "esbuild": "0.17.3",
+    "eslint": "^9.39.5",
+    "obsidian": "^1.13.1",
+    "tslib": "2.4.0",
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.70.0"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}
