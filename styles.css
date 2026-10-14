@@ -1,0 +1,204 @@
+/* Dice Rolls: inline rolls, the roll dialog and the history view. */
+
+.dice-rolls-roll {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2em;
+  padding: 0 0.35em;
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dice-rolls-roll:hover,
+.dice-rolls-roll:focus-visible {
+  background-color: var(--background-modifier-active-hover);
+  outline: none;
+}
+
+.dice-rolls-roll.is-max .dice-rolls-result {
+  color: var(--color-green);
+}
+
+.dice-rolls-roll.is-min .dice-rolls-result {
+  color: var(--color-red);
+}
+
+.dice-rolls-roll.is-mod .dice-rolls-result {
+  font-family: var(--font-monospace);
+  font-weight: var(--font-normal);
+}
+
+.dice-rolls-roll.is-error {
+  font-family: var(--font-monospace);
+  font-weight: var(--font-normal);
+  text-decoration: underline wavy var(--text-error);
+  cursor: help;
+}
+
+.dice-rolls-roll.is-empty .dice-rolls-result:empty {
+  display: none;
+}
+
+.dice-rolls-button {
+  display: inline-flex;
+  align-self: center;
+  color: var(--text-muted);
+}
+
+.dice-rolls-button svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.dice-rolls-formula {
+  color: var(--text-muted);
+  font-weight: var(--font-normal);
+}
+
+.dice-rolls-roll.is-rolled .dice-rolls-button svg {
+  animation: dice-rolls-spin 0.35s ease-out;
+}
+
+@keyframes dice-rolls-spin {
+  from {
+    transform: rotate(-180deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-rolls-roll.is-rolled .dice-rolls-button svg {
+    animation: none;
+  }
+}
+
+/* Dialog and history view */
+
+.dice-rolls-input {
+  width: 100%;
+  font-family: var(--font-monospace);
+}
+
+.dice-rolls-status {
+  margin: var(--size-4-1) 0 var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.dice-rolls-status.is-error {
+  color: var(--text-error);
+}
+
+.dice-rolls-quick,
+.dice-rolls-recent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-1);
+  margin-bottom: var(--size-4-2);
+}
+
+.dice-rolls-label {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.dice-rolls-recent button {
+  font-family: var(--font-monospace);
+}
+
+.dice-rolls-modal-result {
+  text-align: center;
+}
+
+.dice-rolls-total {
+  font-size: 2em;
+  font-weight: var(--font-bold);
+  line-height: 1.2;
+}
+
+.dice-rolls-total.is-max {
+  color: var(--color-green);
+}
+
+.dice-rolls-total.is-min {
+  color: var(--color-red);
+}
+
+.dice-rolls-breakdown {
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-smaller);
+  overflow-wrap: anywhere;
+}
+
+.dice-rolls-history-form {
+  display: flex;
+  gap: var(--size-4-1);
+  margin-bottom: var(--size-4-2);
+}
+
+.dice-rolls-history .dice-rolls-quick button {
+  padding: var(--size-2-1) var(--size-4-2);
+}
+
+.dice-rolls-empty {
+  color: var(--text-muted);
+  padding: var(--size-4-4) 0;
+}
+
+.dice-rolls-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  padding: var(--size-4-2) 0;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.dice-rolls-entry .dice-rolls-total {
+  min-width: 2.5em;
+  font-size: 1.4em;
+  text-align: center;
+}
+
+.dice-rolls-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dice-rolls-entry-formula {
+  font-family: var(--font-monospace);
+}
+
+.dice-rolls-meta {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+}
+
+.dice-rolls-source {
+  cursor: pointer;
+}
+
+.dice-rolls-actions {
+  display: flex;
+  opacity: 0;
+}
+
+.dice-rolls-entry:hover .dice-rolls-actions,
+.dice-rolls-entry:focus-within .dice-rolls-actions {
+  opacity: 1;
+}
+
+body.is-mobile .dice-rolls-actions {
+  opacity: 1;
+}
+
+.setting-item input.dice-rolls-invalid {
+  border-color: var(--text-error);
+}
