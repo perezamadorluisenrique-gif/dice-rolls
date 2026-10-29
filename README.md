@@ -36,9 +36,21 @@ What is different:
 - **Clear errors.** A formula that cannot be rolled stays visible, underlined,
   with the reason in its tooltip.
 
-Not included: section, table, tag, line and Dataview rollers (`dice: [[Note]]`,
-`dice: #tag`), narrative dice and 3D dice. Those codes stay as plain code, so
-you can keep Dice Roller installed for them.
+Not included: section, tag, line and Dataview rollers (`dice: #tag`),
+narrative dice and 3D dice. Those codes stay as plain code, so you can keep
+Dice Roller installed for them.
+
+## Tables
+
+`dice: [[Note#^table-id]]`, `dice: [[Note#Heading]]` or `dice: [[Note]]` rolls
+on a Markdown table: the block id names the table, the heading takes the first
+table under it, and a note alone takes its first table. The picked row is shown
+as Markdown, so images (`![[sword.png]]`) and links in the cells appear; click
+to roll again. Add `|2` to show only the second column.
+
+If the first header is a die (`d6`, `d100`) and the first column holds numbers
+or ranges (`1`, `2-3`), that die is rolled and the matching row is picked, and
+the column is not shown. Otherwise every row is equally likely.
 
 ## Formulas
 
