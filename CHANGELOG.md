@@ -4,6 +4,10 @@ The release workflow uses the section named after the version being released
 as the release description, so every version needs one. `npm version <x.y.z>`
 renames the `Unreleased` heading below to that version.
 
+## 0.2.0
+
+- Table rollers: `dice: [[Note#^id]]`, `dice: [[Note#Heading]]` and `dice: [[Note]]` roll on a Markdown table and show the picked row as Markdown, so images and links in the cells appear. A die header (`d6`) with a range column picks by the die; `|2` shows one column.
+
 ## 0.1.1
 
 - On a phone, **Open roll history** now shows the history. The sidebar drawer used to open on whichever tab it showed last, such as Backlinks (Obsidian 1.7.2 and later).

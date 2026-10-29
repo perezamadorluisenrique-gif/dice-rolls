@@ -202,3 +202,20 @@ body.is-mobile .dice-rolls-actions {
 .setting-item input.dice-rolls-invalid {
   border-color: var(--text-error);
 }
+
+/* Table rollers: the picked row is rendered Markdown, kept on the line. */
+.dice-rolls-table-cell {
+  display: inline-block;
+  vertical-align: middle;
+}
+.dice-rolls-table-cell + .dice-rolls-table-cell {
+  margin-left: 0.5em;
+}
+.dice-rolls-table-cell p {
+  display: inline;
+  margin: 0;
+}
+.dice-rolls-table-cell img {
+  max-height: 8em;
+  vertical-align: middle;
+}

@@ -1,6 +1,6 @@
 {
   "name": "dice-rolls",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Dice Rolls for Obsidian - Inline dice rolls you click to reroll, in Live Preview and Reading view, with full dice notation, a roll dialog and a roll history. Reads Dice Roller notes.",
   "main": "main.js",
   "scripts": {

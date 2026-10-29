@@ -2,6 +2,8 @@ import {
   App,
   Editor,
   ItemView,
+  MarkdownRenderChild,
+  MarkdownRenderer,
   MarkdownView,
   Modal,
   Notice,
@@ -41,6 +43,8 @@ import {
   validAlias,
 } from './src/inline.ts';
 import type { DisplayOptions, InlineRoll } from './src/inline.ts';
+import { findTable, parseTableRoll, pickRow } from './src/table.ts';
+import type { Pick, TableRoll } from './src/table.ts';
 import { addDie, addEntry, readHistory, readLegacyFormulas, recentFormulas, renameSource, when } from './src/history.ts';
 import type { HistoryEntry } from './src/history.ts';
 
@@ -106,6 +110,7 @@ export default class DiceRollsPlugin extends Plugin {
   history: HistoryEntry[] = [];
   /** Results shown in notes, by `rollKey`. */
   private shown = new Map<string, Shown>();
+  private tableShown = new Map<string, Pick>();
   /** Bumped to make every roll in the editor redraw (and reroll if forgotten). */
   epoch = 0;
   private editorExtensions: Extension[] = [];
@@ -170,6 +175,7 @@ export default class DiceRollsPlugin extends Plugin {
 
   onunload() {
     this.shown.clear();
+    this.tableShown.clear();
   }
 
   // ── Data ───────────────────────────────────────────────────────────────
@@ -271,6 +277,7 @@ export default class DiceRollsPlugin extends Plugin {
   private forget(path: string) {
     const prefix = rollKey(path, '', 0).split('\u0000')[0] + '\u0000';
     for (const key of [...this.shown.keys()]) if (key.startsWith(prefix)) this.shown.delete(key);
+    for (const key of [...this.tableShown.keys()]) if (key.startsWith(prefix)) this.tableShown.delete(key);
   }
 
   rerollNote(path: string) {
@@ -409,6 +416,58 @@ export default class DiceRollsPlugin extends Plugin {
     });
   }
 
+  /**
+   * A table roller: picks a row of the table the code points at and draws it
+   * as Markdown, so images and links in the cells show. A click rolls again.
+   */
+  renderTable(el: HTMLElement, content: string, table: TableRoll, place: RollPlace): MarkdownRenderChild {
+    const owner = new MarkdownRenderChild(el);
+    el.empty();
+    el.addClass('dice-rolls-roll', 'is-table');
+    el.setAttr('role', 'button');
+    el.setAttr('tabindex', '0');
+    const result = el.createSpan({ cls: 'dice-rolls-result' });
+    if (this.settings.showButton) setIcon(el.createSpan({ cls: 'dice-rolls-button' }), 'dices');
+    const fail = (error: string) => {
+      el.addClass('is-error');
+      el.find('.dice-rolls-button')?.remove();
+      result.empty();
+      result.setText(content);
+      setTooltip(el, `Can't roll: ${error}`);
+    };
+    const draw = async (pick: Pick) => {
+      el.removeClass('is-error');
+      result.empty();
+      for (const cell of pick.cells) {
+        const holder = result.createSpan({ cls: 'dice-rolls-table-cell' });
+        await MarkdownRenderer.render(this.app, cell, holder, place.source, owner);
+      }
+      setTooltip(el, pick.roll === null ? 'Click to roll again' : `Rolled ${pick.roll}\nClick to roll again`);
+    };
+    const roll = async (fresh: boolean) => {
+      const remembered = fresh ? undefined : this.tableShown.get(place.key);
+      if (remembered) return draw(remembered);
+      const file = table.note
+        ? this.app.metadataCache.getFirstLinkpathDest(table.note, place.source)
+        : this.app.vault.getAbstractFileByPath(place.source);
+      if (!(file instanceof TFile)) return fail(`The note "${table.note}" was not found`);
+      const found = findTable(await this.app.vault.cachedRead(file), table.section);
+      if (!found) return fail(table.section ? `No table at "${table.section.name}"` : 'The note has no table');
+      const pick = pickRow(found, table.column, Math.random);
+      if (typeof pick === 'string') return fail(pick);
+      this.tableShown.set(place.key, pick);
+      await draw(pick);
+    };
+    void roll(false);
+    this.onActivate(el, () => {
+      el.removeClass('is-rolled');
+      void el.offsetWidth;
+      el.addClass('is-rolled');
+      void roll(true);
+    });
+    return owner;
+  }
+
   private markError(el: HTMLElement, result: HTMLElement, content: string, error: string) {
     el.addClass('is-error');
     el.find('.dice-rolls-button')?.remove();
@@ -449,7 +508,7 @@ export default class DiceRollsPlugin extends Plugin {
     const seen = new Map<string, number>();
     for (const code of codes) {
       const content = code.textContent ?? '';
-      const roll = parseInline(content);
+      const roll = parseInline(content) ?? parseTableRoll(content);
       if (!roll) continue;
       const before = spans.filter((s) => s.from < sectionStart && s.content === content).length;
       const k = seen.get(content) ?? 0;
@@ -459,12 +518,14 @@ export default class DiceRollsPlugin extends Plugin {
       const chip = createSpan();
       code.replaceWith(chip);
       const path = ctx.sourcePath;
-      this.renderRoll(chip, content, roll, {
+      const place: RollPlace = {
         key,
         source: path,
         text: () => text,
         write: info ? (replacement) => this.writeInFile(path, content, nth, replacement) : undefined,
-      });
+      };
+      if ('note' in roll) ctx.addChild(this.renderTable(chip, content, roll, place));
+      else this.renderRoll(chip, content, roll, place);
     }
   }
 
@@ -504,7 +565,7 @@ export default class DiceRollsPlugin extends Plugin {
       for (let i = 0; i < spans.length; i++) {
         const span = spans[i];
         if (!visible.some((r) => span.to >= r.from && span.from <= r.to)) continue;
-        const roll = parseInline(span.content);
+        const roll = parseInline(span.content) ?? parseTableRoll(span.content);
         if (!roll) continue;
         if (state.selection.ranges.some((r) => r.from <= span.to && r.to >= span.from)) continue;
         const node = tree.resolveInner(span.from + 1, 1).type.name;
@@ -557,11 +618,12 @@ class RollWidget extends WidgetType {
   readonly content: string;
   /** The code as written, backticks included, to check before a `dice-mod:` writes. */
   private raw: string;
-  private roll: InlineRoll;
+  private roll: InlineRoll | TableRoll;
   private path: string;
   readonly epoch: number;
+  private owner: MarkdownRenderChild | null = null;
 
-  constructor(plugin: DiceRollsPlugin, key: string, nth: number, content: string, raw: string, roll: InlineRoll, path: string, epoch: number) {
+  constructor(plugin: DiceRollsPlugin, key: string, nth: number, content: string, raw: string, roll: InlineRoll | TableRoll, path: string, epoch: number) {
     super();
     this.plugin = plugin;
     this.key = key;
@@ -579,6 +641,12 @@ class RollWidget extends WidgetType {
 
   toDOM(view: EditorView): HTMLElement {
     const el = createSpan();
+    if ('note' in this.roll) {
+      this.owner?.unload();
+      this.owner = this.plugin.renderTable(el, this.content, this.roll, { key: this.key, source: this.path, text: () => '' });
+      this.owner.load();
+      return el;
+    }
     this.plugin.renderRoll(el, this.content, this.roll, {
       key: this.key,
       source: this.path,
@@ -594,6 +662,11 @@ class RollWidget extends WidgetType {
       },
     });
     return el;
+  }
+
+  destroy(): void {
+    this.owner?.unload();
+    this.owner = null;
   }
 
   ignoreEvent(): boolean {
