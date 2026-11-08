@@ -4,6 +4,10 @@ The release workflow uses the section named after the version being released
 as the release description, so every version needs one. `npm version <x.y.z>`
 renames the `Unreleased` heading below to that version.
 
+## Unreleased
+
+- **Insert inline dice roll** no longer fails with "Selection points outside of document" when the selection is longer than the roll that replaces it (a multi-line selection, for instance).
+
 ## 0.2.0
 
 - Table rollers: `dice: [[Note#^id]]`, `dice: [[Note#Heading]]` and `dice: [[Note]]` roll on a Markdown table and show the picked row as Markdown, so images and links in the cells appear. A die header (`d6`) with a range column picks by the die; `|2` shows one column.
