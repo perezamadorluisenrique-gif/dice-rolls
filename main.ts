@@ -295,12 +295,12 @@ export default class DiceRollsPlugin extends Plugin {
     const selected = editor.getRange(from, to).trim();
     const formula = selected && !selected.includes('\n') ? selected : '1d20';
     const text = `\`dice: ${formula}\``;
-    const start = editor.posToOffset(from);
+    // The selection is read in the document after the change. `text` has no line break, so
+    // it stays on `from`'s line (converting an offset of the old note could point past the new one).
+    const at = (ch: number) => ({ line: from.line, ch: from.ch + ch });
     editor.transaction({
       changes: [{ from, to, text }],
-      selection: selected
-        ? { from: editor.offsetToPos(start + text.length) }
-        : { from: editor.offsetToPos(start + 7), to: editor.offsetToPos(start + 7 + formula.length) },
+      selection: selected ? { from: at(text.length) } : { from: at(7), to: at(7 + formula.length) },
     });
   }
 
