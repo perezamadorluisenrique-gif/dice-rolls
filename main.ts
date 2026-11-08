@@ -47,6 +47,7 @@ import { findTable, parseTableRoll, pickRow } from './src/table.ts';
 import type { Pick, TableRoll } from './src/table.ts';
 import { addDie, addEntry, readHistory, readLegacyFormulas, recentFormulas, renameSource, when } from './src/history.ts';
 import type { HistoryEntry } from './src/history.ts';
+import { moreDefinitions, renderMore } from './src/more-link.ts';
 
 interface DiceRollsSettings {
   /** Faces of a die written without them (`3d`). */
@@ -1058,6 +1059,7 @@ class DiceRollsSettingTab extends PluginSettingTab {
         addItem: { name: TEXT.addFormula, action: () => this.addFormula() },
       },
       { ...TEXT.legacy, action: () => void this.importLegacy() },
+      ...(moreDefinitions() as SettingDefinitionItem[]),
     ];
   }
 
@@ -1075,6 +1077,7 @@ class DiceRollsSettingTab extends PluginSettingTab {
   display(): void {
     this.legacy = true;
     this.draw();
+    renderMore(this.containerEl, (el) => new Setting(el));
   }
 
   private draw(): void {
